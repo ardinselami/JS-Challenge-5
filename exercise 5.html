@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raporti i Motit</title>
+  <style>
+    #forecast-container, #recent-searches-container {
+      margin-top: 20px;
+    }
+    #recent-searches-container ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #recent-searches-container li {
+      cursor: pointer;
+      color: blue;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Raporti i Motit</h1>
+  <form id="formaMoti">
+    <label for="qyteti">Qyteti:</label>
+    <input type="text" id="qyteti" name="qyteti" required>
+    <button type="submit">Kërko Motin</button>
+  </form>
+
+  <div id="current-weather"></div>
+  <div id="forecast-container"></div>
+  <div id="recent-searches-container">
+    <h3>Kërkimet e Fundit</h3>
+    <ul id="recent-searches-list"></ul>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+  const formaMoti = document.getElementById('formaMoti');
+  const qytetiInput = document.getElementById('qyteti');
+  const currentWeatherContainer = document.getElementById('current-weather');
+  const forecastContainer = document.getElementById('forecast-container');
+  const recentSearchesList = document.getElementById('recent-searches-list');
+
+  const weatherData = [
+    { city: "Berlin", temperature: 14, humidity: 72, windSpeed: 10 },
+    { city: "Tirana", temperature: 24, humidity: 60, windSpeed: 5 },
+    { city: "Paris", temperature: 18, humidity: 68, windSpeed: 7 },
+    
+  ];
+
+  
+  function fetchWeather(city) {
+    const data = weatherData.find(item => item.city.toLowerCase() === city.toLowerCase());
+    if (data) {
+      displayCurrentWeather(data);
+      saveRecentSearch(city);
+      displayRecentSearches();
+    } else {
+      currentWeatherContainer.innerHTML = `<p>Nuk u gjet asnjë raport moti për qytetin e kërkuar.</p>`;
+    }
+  }
+
+  
+  function displayCurrentWeather(data) {
+    currentWeatherContainer.innerHTML = `
+      <h2>Moti Aktual në ${data.city}</h2>
+      <p>Temperatura: ${data.temperature}°C</p>
+      <p>Lagështia: ${data.humidity}%</p>
+      <p>Shpejtësia e Erës: ${data.windSpeed} km/h</p>
+    `;
+    fetchForecast(data.city, data.temperature);
+  }
+
+  
+  function fetchForecast(city, currentTemp) {
+    let forecast = [];
+    for (let i = 1; i <= 5; i++) {
+      forecast.push({ day: i, temperature: currentTemp + i });
+    }
+    displayForecast(city, forecast);
+  }
+
+  
+  function displayForecast(city, forecast) {
+    let forecastHTML = `<h2>Parashikimi 5-ditor për ${city}</h2>`;
+    forecastHTML += '<ul>';
+    forecast.forEach(day => {
+      forecastHTML += `<li>Dita ${day.day}: ${day.temperature}°C</li>`;
+    });
+    forecastHTML += '</ul>';
+    forecastContainer.innerHTML = forecastHTML;
+  }
+
+
+  function saveRecentSearch(city) {
+    let searches = JSON.parse(localStorage.getItem('recentSearches')) || [];
+    if (!searches.includes(city)) {
+      searches.push(city);
+      localStorage.setItem('recentSearches', JSON.stringify(searches));
+    }
+  }
+
+
+  function displayRecentSearches() {
+    let searches = JSON.parse(localStorage.getItem('recentSearches')) || [];
+    recentSearchesList.innerHTML = '';
+    searches.forEach(city => {
+      let li = document.createElement('li');
+      li.textContent = city;
+      li.addEventListener('click', () => {
+        qytetiInput.value = city;
+        fetchWeather(city);
+      });
+      recentSearchesList.appendChild(li);
+    });
+  }
+
+
+  formaMoti.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const qyteti = qytetiInput.value;
+    fetchWeather(qyteti);
+  });
+
+
+  displayRecentSearches();
+});
+  </script>
+</body>
+</html>
